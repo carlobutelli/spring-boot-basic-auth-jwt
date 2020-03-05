@@ -1,0 +1,118 @@
+openapi: "3.0.0"
+tags:
+  - name: location
+    description: "Travel api for retrieving locations"
+info:
+  title: "Travel API"
+  version: "1.0.0"
+  description: "You can use this api to retrieve locations."
+  contact:
+    name: someone
+    email: someone@airfranceklm.com
+    url: https://developer.airfranceklm.com/
+servers:
+  - url: http://localhost:8080/travel
+paths:
+  /locations:
+    get:
+      operationId: "getLocations"
+      description: "Get all locations"
+      tags:
+        - locations
+      parameters:
+        - $ref: '#/components/parameters/accept-language'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+  /locations/{type}/{code}:
+    get:
+      operationId: "getLocationByTypeAndCode"
+      description: "Get location by type and code"
+      tags:
+        - locations
+      parameters:
+        - name: type
+          in: path
+          description: The type of the location
+          required: true
+          schema:
+            $ref: '#/components/schemas/LocationType'
+        - name: code
+          in: path
+          description: The ISO code of the required airport
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/accept-language'
+      responses:
+        200:
+          $ref: '#/components/responses/Location'
+        404:
+          $ref: '#/components/responses/404'
+components:
+  securitySchemes:
+    BasicAuth:
+      type: "http"
+      scheme: basic
+  parameters:
+    accept-language:
+      in: header
+      name: accept-language
+      schema:
+        type: string
+      required: false
+      description:
+        "The accept language header should be used to internationalize the response.
+         If not specified or the requested language is not supported, english should be returned.
+         See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language for further details."
+  responses:
+    Location:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Location'
+    Locations:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Location'
+    404:
+      description: NOTFOUND
+  schemas:
+    Location:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        name:
+          type: "string"
+        type:
+          $ref: '#/components/schemas/LocationType'
+        latitude:
+          type: "number"
+          format: "double"
+        longitude:
+          type: "number"
+          format: "double"
+        description:
+          type: "string"
+        parentCode:
+          type: "string"
+        parentType:
+          $ref: '#/components/schemas/LocationType'
+    LocationType:
+      type: string
+      enum:
+        - country
+        - city
+        - airport
