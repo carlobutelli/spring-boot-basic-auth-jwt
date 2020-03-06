@@ -1,6 +1,10 @@
 Setup
 -----
 
+### Gradle
+
+- Install gradle
+
 ### Running the application
 
 A basic spring boot application with basic authentication and jwt (mainclass: `com.tech.travel.Application`).
