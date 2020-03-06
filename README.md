@@ -31,7 +31,7 @@ Api is secured with basic authentication, so it first requires a user to login:
 The login generates a jwt that can be used to access the protected routes
 
 #### Diagram
-![Basic flow of the API authentication authorization](charts/basic_auth_jwt.png){:height="50%" width="50%"}
+[[charts/basic_auth_jwt.png | width=100px | height=200px]]
 
 ---
 
