@@ -1,5 +1,6 @@
 package com.tech.travel.controllers;
 
+import com.tech.travel.api.responses.BaseResponse;
 import com.tech.travel.models.User;
 import com.tech.travel.repository.UserRepository;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private final Logger log =  LoggerFactory.getLogger(AuthenticationController.class);
+    private final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     UserRepository userRepository;
@@ -41,11 +42,23 @@ public class UserController {
     public ResponseEntity userAccess(HttpServletRequest request,
                                      @PathVariable("username") @NotEmpty @NotNull String username) {
         final String transactionId = request.getHeader("X-Transaction-Id");
-        logInfoWithTransactionId(transactionId, String.format("got new request to fetch user %s", username));
-        User user = userRepository
-                .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("user not found with username: " + username));
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        try {
+            logInfoWithTransactionId(transactionId, String.format("got new request to fetch user %s", username));
+            User user = userRepository
+                    .findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("user not found with username: " + username));
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (UsernameNotFoundException e) {
+            logErrorWithTransactionId(transactionId, String.format("username %s not found", username));
+            return new ResponseEntity<>(
+                    new BaseResponse(
+                            "ERROR",
+                            transactionId,
+                            String.format("username %s not found", username),
+                            HttpStatus.NOT_FOUND.value()
+                    ), HttpStatus.NOT_FOUND
+            );
+        }
     }
 
     @GetMapping("/test/ops")

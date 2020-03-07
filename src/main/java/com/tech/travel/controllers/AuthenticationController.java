@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 public class AuthenticationController {
 
-    private final Logger log =  LoggerFactory.getLogger(AuthenticationController.class);
+    private final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -56,14 +56,14 @@ public class AuthenticationController {
                                           @Valid @RequestBody SignupRequest signUpRequest) {
         final String transactionId = request.getHeader("X-Transaction-Id");
 
-        logInfoWithTransactionId(transactionId,"got new request to sign-up user");
+        logInfoWithTransactionId(transactionId, "got new request to sign-up user");
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
         }
 
-        logInfoWithTransactionId(transactionId,"creating new user");
+        logInfoWithTransactionId(transactionId, "creating new user");
         User user = new User(
                 signUpRequest.getUsername(),
                 passwordEncoder.encode(signUpRequest.getPassword()),
@@ -78,7 +78,7 @@ public class AuthenticationController {
             Role userRole = roleRepository.findByName(Role.ERole.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
-            logInfoWithTransactionId(transactionId,String.format("user got role: %s", userRole.getName()));
+            logInfoWithTransactionId(transactionId, String.format("user got role: %s", userRole.getName()));
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
@@ -86,19 +86,19 @@ public class AuthenticationController {
                         Role adminRole = roleRepository.findByName(Role.ERole.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
-                        logInfoWithTransactionId(transactionId,"user got role ADMIN");
+                        logInfoWithTransactionId(transactionId, "user got role ADMIN");
                         break;
                     case "operations":
                         Role opsRole = roleRepository.findByName(Role.ERole.ROLE_OPS)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(opsRole);
-                        logInfoWithTransactionId(transactionId,"user got role OPS");
+                        logInfoWithTransactionId(transactionId, "user got role OPS");
                         break;
                     default:
                         Role userRole = roleRepository.findByName(Role.ERole.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
-                        logInfoWithTransactionId(transactionId,"user got role USER");
+                        logInfoWithTransactionId(transactionId, "user got role USER");
                 }
             });
         }
@@ -109,12 +109,13 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(HttpServletRequest request,
-                                              @Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtResponse> authenticateUser(HttpServletRequest request,
+                                                        @RequestBody LoginRequest loginRequest) {
         final String transactionId = request.getHeader("X-Transaction-Id");
         logInfoWithTransactionId(
                 transactionId,
-                String.format("got new request to login user %s, %s", loginRequest.getUsername(), loginRequest.getPassword())
+                String.format("got new request to login user %s, %s", loginRequest.getUsername(),
+                        loginRequest.getPassword())
         );
 
         Authentication authentication = authenticationManager.authenticate(

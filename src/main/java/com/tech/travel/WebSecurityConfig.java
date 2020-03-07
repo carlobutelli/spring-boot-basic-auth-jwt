@@ -6,6 +6,7 @@ import com.tech.travel.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -28,16 +29,21 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.InMemorySwaggerResourcesProvider;
+import springfox.documentation.swagger.web.SwaggerResource;
+import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableSwagger2
+//@EnableSwagger2
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -88,12 +94,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .cors().configurationSource(new PermissiveCorsConfigurationSource())
+                .cors().configurationSource(new CorsConfigSource())
                 .and()
                 .authorizeRequests()
+                .antMatchers("/v2/**", "/swagger-ui.html").permitAll()
                 .antMatchers("/actuator/metrics/**").hasAnyRole("ADMIN", "OPS")
-                .antMatchers("/api/auth/**", "/h2-console/**", "/test/users/**").permitAll()
-                .antMatchers("/test/users/**").permitAll()
+                .antMatchers("/api/auth/**", "/h2-console/**", "/users/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -103,8 +109,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-    private static class PermissiveCorsConfigurationSource implements CorsConfigurationSource {
-
+    private static class CorsConfigSource implements CorsConfigurationSource {
         @Override
         public CorsConfiguration getCorsConfiguration(final HttpServletRequest request) {
             final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -118,25 +123,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
+    @Primary
     @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("Admin")
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.tech.travel.controllers"))
-                .paths(PathSelectors.any())
-                .build()
-                .apiInfo(getApiInfo());
-    }
+    public SwaggerResourcesProvider swaggerResourcesProvider(InMemorySwaggerResourcesProvider defaultResourceProvider) {
+        return () -> {
+            SwaggerResource wsRespurce = new SwaggerResource();
+            wsRespurce.setName("new Spec");
+            wsRespurce.setSwaggerVersion("2.0");
+            wsRespurce.setLocation("/openapi/travel-api.yaml");
 
-    private ApiInfo getApiInfo() {
-        return new ApiInfoBuilder()
-                .title("Spring Boot Basic Auth Jwt")
-                .description("Basic authentication service with jwt authorization")
-                .contact(new Contact("Carlo Butelli", "www.carlobutelli.com", "dev.butelli@gmail.com"))
-                .license("")
-                .version("1.0.0")
-                .build();
+            List<SwaggerResource> resources = new ArrayList<>(defaultResourceProvider.get());
+            resources.add(wsRespurce);
+            return resources;
+        };
     }
 
 }

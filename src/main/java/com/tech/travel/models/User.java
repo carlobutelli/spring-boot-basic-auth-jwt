@@ -18,7 +18,6 @@ import java.util.Set;
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = "username")})
 public class User {
 
-    @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -47,5 +46,11 @@ public class User {
         this.password = password;
         this.enabled = enabled;
     }
+
+    @JsonIgnore
+    public String getPassword() {
+        return this.password;
+    }
+
 }
 

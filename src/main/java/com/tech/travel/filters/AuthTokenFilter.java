@@ -43,8 +43,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 filterChain.doFilter(wrapperRequest, response);
                 return;
             }
-            logInfoWithTransactionId(transactionId, "processing filter");
             String jwt = parseJwt(request);
+            log.info(String.format("jwt: %s", jwt));
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
@@ -76,10 +76,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
 
         return null;
-    }
-
-    private void logInfoWithTransactionId(String transactionId, String message) {
-        log.info(String.format("[FILTER] %s: %s", transactionId, message));
     }
 
     private void logErrorWithTransactionId(String transactionId, String message) {

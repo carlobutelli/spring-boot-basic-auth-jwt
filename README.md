@@ -41,7 +41,19 @@ The login generates a jwt that can be used to access the protected routes
 
 Documentation
 -------------
-coming soon
+
+Directory `src/main/openapi` contains the specification file `travel-api.yaml`.
+
+To view the spec file in `Swagger UI` run the following gradle task:
+
+```
+./gradlew runSwaggerUI
+```
+
+Note:
+The runSwaggerUI requires that `docker` is installed on your local environment
+
+Now visit [SwaggerUI](http://localhost:8050)
 
 ---
 

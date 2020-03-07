@@ -2,23 +2,99 @@ openapi: "3.0.0"
 tags:
   - name: location
     description: "Travel api for retrieving locations"
+  - name: authentication
+    description: "Authentication and Sign-up API"
+  - name: user
+    description: "User API"
 info:
-  title: "Travel API"
+  title: "Spring boot basic auth jwt"
   version: "1.0.0"
-  description: "You can use this api to retrieve locations."
+  description: "Spring boot basic authentication wih jwt authorization."
   contact:
-    name: someone
-    email: someone@airfranceklm.com
-    url: https://developer.airfranceklm.com/
+    name: "Carlo Butelli"
+    email: "dev.butelli@gmail.com"
+    url: https://carlobutelli.com/
 servers:
-  - url: http://localhost:8080/travel
+  - url: http://localhost:8080
 paths:
-  /locations:
+  /api/auth/sign-up:
+    post:
+      operationId: "sign-up"
+      description: "Sign up user"
+      tags:
+        - authentication
+      consumes:
+        - application/json
+      parameters:
+        - name: user
+          in: body
+          description: User's data
+          required: true
+          schema:
+            $ref: '#/components/schemas/SignUpRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Message'
+  /api/auth/login:
+    post:
+      operationId: "login"
+      description: "Login user"
+      tags:
+        - authentication
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: credentials
+          description: User's credentials
+          schema:
+            properties:
+              username:
+                type: string
+                required: true
+              password:
+                type: string
+                required: true
+      responses:
+        200:
+          description: OK
+#          $ref: '#/components/responses/JwtResponse'
+  /users/all:
+    get:
+      description: "Get all users"
+      tags:
+        - users
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /users/{username}:
+    get:
+      operationId: "getUser"
+      description: "Get user by username"
+      tags:
+        - users
+      parameters:
+        - $ref: '#/components/parameters/username'
+        - $ref: '#/components/parameters/jwt'
+      responses:
+        200:
+          $ref: '#/components/responses/UserResponse'
+        404:
+          $ref: '#/components/responses/404'
+  /travel/locations:
     get:
       operationId: "getLocations"
       description: "Get all locations"
       tags:
-        - locations
+        - location
       parameters:
         - $ref: '#/components/parameters/accept-language'
       responses:
@@ -30,12 +106,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Location'
-  /locations/{type}/{code}:
+  /travel/locations/{type}/{code}:
     get:
       operationId: "getLocationByTypeAndCode"
       description: "Get location by type and code"
       tags:
-        - locations
+        - location
       parameters:
         - name: type
           in: path
@@ -56,11 +132,22 @@ paths:
         404:
           $ref: '#/components/responses/404'
 components:
-  securitySchemes:
-    BasicAuth:
-      type: "http"
-      scheme: basic
   parameters:
+    username:
+      in: path
+      name: username
+      description: "Username of the user"
+      required: true
+      schema:
+        type: string
+    jwt:
+      in: header
+      name: Authorization
+      description: "jwt to access the resource"
+      schema:
+        type: string
+        example: Bearer <jwt>
+      required: true
     accept-language:
       in: header
       name: accept-language
@@ -72,6 +159,26 @@ components:
          If not specified or the requested language is not supported, english should be returned.
          See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language for further details."
   responses:
+    MessageResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+    UsersResponse:
+      description: OK
+      content:
+        application/json:
+      schema:
+        type: array
+        items:
+          $ref: '#/components/schemas/User'
+    JwtResponse:
+      description: OK
+      content:
+        application/json:
+      schema:
+        $ref: '#/components/schemas/Jwt'
     Location:
       description: OK
       content:
@@ -89,25 +196,58 @@ components:
     404:
       description: NOTFOUND
   schemas:
+    SignUpRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+    Credentials:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    Jwt:
+      type: object
+      properties:
+        token:
+          type: string
+        type:
+          type: string
+        id:
+          type: integer
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleType'
     Location:
-      type: "object"
+      type: object
       properties:
         code:
-          type: "string"
+          type: string
         name:
-          type: "string"
+          type: string
         type:
           $ref: '#/components/schemas/LocationType'
         latitude:
-          type: "number"
-          format: "double"
+          type: number
+          format: double
         longitude:
-          type: "number"
-          format: "double"
+          type: number
+          format: double
         description:
-          type: "string"
+          type: string
         parentCode:
-          type: "string"
+          type: string
         parentType:
           $ref: '#/components/schemas/LocationType'
     LocationType:
@@ -116,3 +256,32 @@ components:
         - country
         - city
         - airport
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          $ref: '#/components/schemas/RoleType'
+    RoleType:
+      type: string
+      enum:
+        - ROLE_USER
+        - ROLE_ADMIN
+        - ROLE_OPS

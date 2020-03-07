@@ -1,5 +1,6 @@
 package com.tech.travel.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,5 +32,10 @@ public class Role {
     public Role(ERole name) {
         this.name = name;
     }
+
+//    @JsonIgnore
+//    public Integer getId() {
+//        return this.id;
+//    }
 
 }
