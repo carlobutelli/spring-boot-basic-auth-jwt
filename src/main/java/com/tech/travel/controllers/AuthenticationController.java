@@ -70,7 +70,7 @@ public class AuthenticationController {
                 true
         );
 
-        Set<String> strRoles = signUpRequest.getRole();
+        Set<String> strRoles = signUpRequest.getRoles();
         logInfoWithTransactionId(transactionId, String.format("save roles: %s", strRoles));
         Set<Role> roles = new HashSet<>();
 

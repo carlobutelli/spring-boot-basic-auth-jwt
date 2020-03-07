@@ -25,5 +25,6 @@ public class SignupRequest {
 
     private Boolean enabled;
 
-    private Set<String> role;
+    @JsonProperty("roles")
+    private Set<String> roles;
 }
